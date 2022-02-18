@@ -2,8 +2,7 @@
     <a href="https://discord.gg/kunai">
         <img
             alt="PinCracker"
-            src="https://cdn.discordapp.com/attachments/930056703930671164/930104912526868480/unknown.png"
-            width="150">
+            src="https://user-images.githubusercontent.com/84878036/154731375-92843003-4f81-499b-96e8-7cc03e3df20e.png">
     </a>
 </div>
 
